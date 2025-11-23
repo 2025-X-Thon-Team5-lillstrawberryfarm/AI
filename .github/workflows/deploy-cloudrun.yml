@@ -1,0 +1,51 @@
+name: Deploy AI FastAPI to Cloud Run
+
+on:
+  push:
+    branches: ["main"]   # main에 push 될 때마다 배포
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SERVICE_NAME: ai-service          # Cloud Run 서비스 이름
+      REGION: asia-northeast3          # 서울 리전
+
+    steps:
+      # 1) 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) GCP 인증 (서비스 계정 JSON 사용)
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      # 3) gcloud SDK 세팅
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # 4) Cloud Run 배포 (Dockerfile 기반 빌드 + 배포)
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          source: .                         # 현재 레포 루트에서 Dockerfile 찾아서 빌드
+          allow_unauthenticated: true       # 인증 없이 호출 가능하게 (나중에 잠그고 싶으면 false)
+          clear_cache: true                 # 캐시 비우고 새로 빌드
+          env_vars: |
+            PORT=8080
+            ANALYZE_API_KEY=${{ secrets.ANALYZE_API_KEY }}
+            CHATBOT_API_KEY=${{ secrets.CHATBOT_API_KEY }}
+            CATEGORY_API_KEY=${{ secrets.CATEGORY_API_KEY }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            PYTHONUNBUFFERED=1
