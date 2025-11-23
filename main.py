@@ -11,7 +11,7 @@ from database import DB_CONFIG
 # ⏰ 스케줄러 설정 (매월 1일 그룹 갱신)
 # ---------------------------------------------------------
 def scheduled_task():
-    print("⏰ [자동 실행] 월간 그룹 갱신을 시작합니다...")
+    print(" [자동 실행] 월간 그룹 갱신을 시작합니다...")
     conn = pymysql.connect(**DB_CONFIG)
     try:
         clustering.logic_clustering(conn)
