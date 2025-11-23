@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+openai
+pymysql
+python-dotenv
+pydantic
+cryptography
