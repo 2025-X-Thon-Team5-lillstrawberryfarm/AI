@@ -1,0 +1,43 @@
+# cloudbuild.yaml
+steps:
+  # 1) Docker 이미지 빌드
+  - name: gcr.io/cloud-builders/docker
+    args:
+      [
+        "build",
+        "-t",
+        "gcr.io/$PROJECT_ID/ai-backend",
+        "."
+      ]
+
+  # 2) 빌드한 이미지를 Google Container Registry (GCR)에 푸시
+  - name: gcr.io/cloud-builders/docker
+    args:
+      [
+        "push",
+        "gcr.io/$PROJECT_ID/ai-backend"
+      ]
+
+  # 3) Cloud Run 배포
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "ai-backend-service", # 💡 배포할 서비스 이름
+        "--image",
+        "gcr.io/$PROJECT_ID/ai-backend",
+        "--region",
+        "asia-northeast3", # 💡 GCP 리전 (예: 서울)
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--port",
+        "8080"
+        # 💡 [중요] .env에 있는 환경변수는 여기에 --set-env-vars로 추가해야 합니다.
+        # 예: "--set-env-vars", "DB_HOST=..., USER=..., PASSWORD=..., CHATBOT_API_KEY=..."
+      ]
+
+images:
+  - gcr.io/$PROJECT_ID/ai-backend
